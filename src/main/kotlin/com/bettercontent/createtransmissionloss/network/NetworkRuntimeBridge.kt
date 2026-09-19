@@ -5,15 +5,23 @@ import com.simibubi.create.content.kinetics.KineticNetwork
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraftforge.registries.ForgeRegistries
+import java.util.Collections
+import java.util.IdentityHashMap
 import kotlin.math.abs
 
 object NetworkRuntimeBridge {
+    private data class NetworkBinding(val id: NetworkId, val level: net.minecraft.world.level.Level)
+    private val bindings = Collections.synchronizedMap(IdentityHashMap<KineticNetwork, NetworkBinding>())
     data class BlockLossSummary(
         val individualLoss: Double,
         val networkTypeLoss: Double,
         val networkTypeCount: Int,
         val networkTypeLabel: String
     )
+
+    fun bootstrap() {
+        bindings.clear()
+    }
 
     fun computeBlockLoss(state: BlockState, rpm: Float): Double {
         val baseCost = blockBaseLoss(state)
@@ -27,13 +35,16 @@ object NetworkRuntimeBridge {
         if (baseCost <= 0.0) return null
 
         val individualLoss = NetworkScanner.computeTypeLoss(1, baseCost, rpm)
-        val cached = refreshLossFromBlockEntity(blockEntity)
+        val cached = cachedLossFromBlockEntity(blockEntity)
         val count = cached?.breakdown?.count(kind) ?: 1
-        val networkRpm = cached?.breakdown?.rpm ?: rpm
+        val networkTypeLoss = cached?.let {
+            NetworkScanner.computeComponentLoss(it.breakdown, TransmissionComponentKind.valueOf(kind.name))
+        }
+            ?: NetworkScanner.computeTypeLoss(count, baseCost, rpm)
 
         return BlockLossSummary(
             individualLoss = individualLoss,
-            networkTypeLoss = NetworkScanner.computeTypeLoss(count, baseCost, networkRpm),
+            networkTypeLoss = networkTypeLoss,
             networkTypeCount = count,
             networkTypeLabel = kind.label(count)
         )
@@ -48,22 +59,34 @@ object NetworkRuntimeBridge {
     }
 
     fun refreshLoss(network: KineticNetwork, force: Boolean = false): CachedLoss? {
+        cachedLoss(network, force)?.let { return it }
         val sample = sampleNetwork(network) ?: return null
-        val cached = LossCache.snapshot(sample.id)
-        val shouldRefresh = force ||
-            cached == null ||
-            cached.breakdown != sample.breakdown ||
-            LossCache.shouldRecalc(sample.id, sample.gameTime, force = false)
-
-        if (shouldRefresh) {
-            LossCache.set(sample.id, sample.gameTime, sample.breakdown)
-        }
+        LossCache.recordScan()
+        bindings[network] = NetworkBinding(sample.id, sample.level)
+        LossCache.set(sample.id, sample.gameTime, sample.breakdown)
 
         return LossCache.snapshot(sample.id)
     }
 
     fun refreshLossFromBlockEntity(blockEntity: KineticBlockEntity, force: Boolean = false): CachedLoss? =
         refreshLoss(blockEntity.getOrCreateNetwork(), force)
+
+    fun invalidateTopology(network: KineticNetwork) {
+        bindings.remove(network)?.let { LossCache.invalidate(it.id) }
+    }
+
+    fun invalidateSpeed(blockEntity: KineticBlockEntity) {
+        if (!blockEntity.hasNetwork()) return
+        bindings[blockEntity.getOrCreateNetwork()]?.let { LossCache.invalidate(it.id) }
+    }
+
+    private fun cachedLossFromBlockEntity(blockEntity: KineticBlockEntity): CachedLoss? =
+        if (!blockEntity.hasNetwork()) null else cachedLoss(blockEntity.getOrCreateNetwork(), force = false)
+
+    private fun cachedLoss(network: KineticNetwork, force: Boolean): CachedLoss? {
+        val binding = bindings[network] ?: return null
+        return LossCache.usableSnapshot(binding.id, binding.level.gameTime, force)
+    }
 
     private fun sampleNetwork(network: KineticNetwork): NetworkSample? {
         val members = networkMembers(network)
@@ -78,21 +101,25 @@ object NetworkRuntimeBridge {
             .firstOrNull() ?: "minecraft:overworld"
 
         var gameTime = 0L
+        var sampleLevel: net.minecraft.world.level.Level? = null
         var maxRpm = 0f
         val tally = BreakdownTally()
 
         members.forEach { member ->
             member.level?.let { level ->
+                if (sampleLevel == null) sampleLevel = level
                 gameTime = maxOf(gameTime, level.gameTime)
-                countTransmissionBlock(level.getBlockState(member.blockPos), tally)
+                countTransmissionBlock(level.getBlockState(member.blockPos), member.speed, tally)
             }
             maxRpm = maxOf(maxRpm, abs(member.speed))
         }
 
+        val level = sampleLevel ?: return null
         return NetworkSample(
             id = NetworkId(dimension, canonicalPos),
             gameTime = gameTime,
-            breakdown = tally.toBreakdown(maxRpm)
+            breakdown = tally.toBreakdown(maxRpm),
+            level = level
         )
     }
 
@@ -108,15 +135,15 @@ object NetworkRuntimeBridge {
 
     internal data class NetworkMemberIdentity(val dimension: String?, val blockPos: Long)
 
-    private fun countTransmissionBlock(state: BlockState, tally: BreakdownTally) {
+    private fun countTransmissionBlock(state: BlockState, rpm: Float, tally: BreakdownTally) {
         when (blockKind(state)) {
-            TransmissionBlockKind.GEARBOX -> tally.gearboxes += 1
-            TransmissionBlockKind.LARGE_COGWHEEL -> tally.largeCogwheels += 1
-            TransmissionBlockKind.COGWHEEL -> tally.cogwheels += 1
-            TransmissionBlockKind.BELT -> tally.beltSegments += 1
-            TransmissionBlockKind.ENCASED_SHAFT -> tally.encasedShaftBlocks += 1
-            TransmissionBlockKind.CHAIN_DRIVE -> tally.chainDrives += 1
-            TransmissionBlockKind.SHAFT -> tally.shaftBlocks += 1
+            TransmissionBlockKind.GEARBOX -> { tally.gearboxes += 1; tally.components += TransmissionComponent(TransmissionComponentKind.GEARBOX, rpm) }
+            TransmissionBlockKind.LARGE_COGWHEEL -> { tally.largeCogwheels += 1; tally.components += TransmissionComponent(TransmissionComponentKind.LARGE_COGWHEEL, rpm) }
+            TransmissionBlockKind.COGWHEEL -> { tally.cogwheels += 1; tally.components += TransmissionComponent(TransmissionComponentKind.COGWHEEL, rpm) }
+            TransmissionBlockKind.BELT -> { tally.beltSegments += 1; tally.components += TransmissionComponent(TransmissionComponentKind.BELT, rpm) }
+            TransmissionBlockKind.ENCASED_SHAFT -> { tally.encasedShaftBlocks += 1; tally.components += TransmissionComponent(TransmissionComponentKind.ENCASED_SHAFT, rpm) }
+            TransmissionBlockKind.CHAIN_DRIVE -> { tally.chainDrives += 1; tally.components += TransmissionComponent(TransmissionComponentKind.CHAIN_DRIVE, rpm) }
+            TransmissionBlockKind.SHAFT -> { tally.shaftBlocks += 1; tally.components += TransmissionComponent(TransmissionComponentKind.SHAFT, rpm) }
             null -> Unit
         }
     }
@@ -156,7 +183,8 @@ object NetworkRuntimeBridge {
     private data class NetworkSample(
         val id: NetworkId,
         val gameTime: Long,
-        val breakdown: TransmissionBreakdown
+        val breakdown: TransmissionBreakdown,
+        val level: net.minecraft.world.level.Level
     )
 
     private data class BreakdownTally(
@@ -167,7 +195,8 @@ object NetworkRuntimeBridge {
         var gearboxes: Int = 0,
         var beltSegments: Int = 0,
         var beltPulleys: Int = 0,
-        var chainDrives: Int = 0
+        var chainDrives: Int = 0,
+        val components: MutableList<TransmissionComponent> = mutableListOf()
     ) {
         fun toBreakdown(rpm: Float) = TransmissionBreakdown(
             shaftBlocks = shaftBlocks,
@@ -178,7 +207,8 @@ object NetworkRuntimeBridge {
             beltSegments = beltSegments,
             beltPulleys = beltPulleys,
             chainDrives = chainDrives,
-            rpm = rpm
+            rpm = rpm,
+            components = components.toList()
         )
     }
 

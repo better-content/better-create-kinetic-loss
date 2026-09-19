@@ -102,4 +102,29 @@ class NetworkScannerTest {
 
         assertEquals(expected * multiplier, NetworkScanner.computeLoss(breakdown), 1e-9)
     }
+
+    @Test
+    fun computesEachComponentAtItsOwnSpeed() {
+        val slowShaft = TransmissionComponent(TransmissionComponentKind.SHAFT, 16f)
+        val fastGearbox = TransmissionComponent(TransmissionComponentKind.GEARBOX, 128f)
+        val breakdown = TransmissionBreakdown(
+            shaftBlocks = 1,
+            gearboxes = 1,
+            rpm = 128f,
+            components = listOf(slowShaft, fastGearbox)
+        )
+
+        val expected = NetworkScanner.computeTypeLoss(1, TransmissionLossConfig.shaftValue(), 16f) +
+            NetworkScanner.computeTypeLoss(1, TransmissionLossConfig.gearboxValue(), 128f)
+        val repricedAtFastBranch = NetworkScanner.computeTypeLoss(
+            1,
+            TransmissionLossConfig.shaftValue(),
+            128f
+        ) + NetworkScanner.computeTypeLoss(1, TransmissionLossConfig.gearboxValue(), 128f)
+
+        assertEquals(expected, NetworkScanner.computeLoss(breakdown), 1e-9)
+        assertEquals(expected, NetworkScanner.computeComponentLoss(breakdown, TransmissionComponentKind.SHAFT) +
+            NetworkScanner.computeComponentLoss(breakdown, TransmissionComponentKind.GEARBOX), 1e-9)
+        assert(expected < repricedAtFastBranch)
+    }
 }

@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher
 import com.bettercontent.createtransmissionloss.command.TransmissionLossCommands
 import com.bettercontent.createtransmissionloss.config.TransmissionLossConfig
 import com.bettercontent.createtransmissionloss.network.LossCache
+import com.bettercontent.createtransmissionloss.network.NetworkRuntimeBridge
 import net.minecraft.commands.CommandSourceStack
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.RegisterCommandsEvent
@@ -15,6 +16,7 @@ class TransmissionLossMod {
     init {
         TransmissionLossConfig.register()
         LossCache.bootstrap()
+        NetworkRuntimeBridge.bootstrap()
         MinecraftForge.EVENT_BUS.register(this)
     }
 

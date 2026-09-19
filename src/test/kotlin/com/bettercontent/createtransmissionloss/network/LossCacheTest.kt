@@ -80,4 +80,30 @@ class LossCacheTest {
         LossCache.bootstrap()
         assertEquals(true, LossCache.shouldRecalc(NetworkId("minecraft:the_end", 1L), 0L, force = false))
     }
+
+    @Test
+    fun validSnapshotIsAHitWithoutRecordingAnotherScan() {
+        LossCache.bootstrap()
+        val id = NetworkId("minecraft:overworld", 84L)
+        LossCache.set(id, 100L, TransmissionBreakdown(shaftBlocks = 1, rpm = 16f))
+        LossCache.recordScan()
+
+        val cached = LossCache.usableSnapshot(id, 100L)
+
+        assertEquals(1L, LossCache.scanCount())
+        assertEquals(1L, LossCache.cacheHitCount())
+        assertEquals(100L, requireNotNull(cached).lastRecalcGameTime)
+    }
+
+    @Test
+    fun topologyOrSpeedInvalidationBypassesCooldown() {
+        LossCache.bootstrap()
+        val id = NetworkId("minecraft:overworld", 85L)
+        LossCache.set(id, 100L, TransmissionBreakdown(shaftBlocks = 1, rpm = 16f))
+
+        LossCache.invalidate(id)
+
+        assertEquals(true, LossCache.shouldRecalc(id, 101L, force = false))
+        assertNull(LossCache.usableSnapshot(id, 101L))
+    }
 }

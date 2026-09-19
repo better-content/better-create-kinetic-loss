@@ -5,7 +5,8 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "StressCalculatorMixin",
-    "NetworkDirtyMixin"
+    "NetworkDirtyMixin",
+    "KineticSpeedMixin"
   ],
   "client": [
     "OverlayMixin"

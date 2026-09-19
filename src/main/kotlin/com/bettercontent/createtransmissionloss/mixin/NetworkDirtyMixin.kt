@@ -1,7 +1,5 @@
 package com.bettercontent.createtransmissionloss.mixin
 
-import com.bettercontent.createtransmissionloss.network.LossCache
-import com.bettercontent.createtransmissionloss.network.NetworkId
 import com.bettercontent.createtransmissionloss.network.NetworkRuntimeBridge
 import com.simibubi.create.content.kinetics.KineticNetwork
 import org.spongepowered.asm.mixin.Mixin
@@ -24,9 +22,6 @@ abstract class NetworkDirtyMixin {
     }
 
     private fun markDirty() {
-        val id = readNetworkId() ?: return
-        LossCache.markDirty(id)
+        NetworkRuntimeBridge.invalidateTopology(this as KineticNetwork)
     }
-
-    private fun readNetworkId(): NetworkId? = NetworkRuntimeBridge.resolveNetworkId(this as KineticNetwork)
 }
