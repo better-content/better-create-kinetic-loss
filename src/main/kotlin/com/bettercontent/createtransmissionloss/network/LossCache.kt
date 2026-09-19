@@ -44,12 +44,21 @@ object LossCache {
     fun snapshot(networkId: NetworkId): CachedLoss? = cache[networkId]
 
     fun shouldRecalc(networkId: NetworkId, gameTime: Long, force: Boolean): Boolean {
-        if (force) return true
-        val entry = cache[networkId] ?: return true
-        if (entry.configFingerprint != configFingerprint()) return true
-        if (!entry.dirty) return false
-        if (entry.immediateRefresh) return true
-        return gameTime - entry.lastRecalcGameTime >= TransmissionLossConfig.recalcCooldownTicksValue()
+        return requiresRecalculation(cache[networkId], gameTime, force)
+    }
+
+    internal fun requiresRecalculation(
+        entry: CachedLoss?,
+        gameTime: Long,
+        force: Boolean,
+        currentConfig: ConfigFingerprint = configFingerprint()
+    ): Boolean = when {
+        force -> true
+        entry == null -> true
+        entry.configFingerprint != currentConfig -> true
+        !entry.dirty -> false
+        entry.immediateRefresh -> true
+        else -> gameTime - entry.lastRecalcGameTime >= TransmissionLossConfig.recalcCooldownTicksValue()
     }
 
     fun usableSnapshot(networkId: NetworkId, gameTime: Long, force: Boolean = false): CachedLoss? {

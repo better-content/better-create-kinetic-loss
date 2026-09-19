@@ -1,6 +1,5 @@
 package com.bettercontent.createtransmissionloss.network
 
-import com.bettercontent.createtransmissionloss.config.TransmissionLossConfig
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -105,5 +104,20 @@ class LossCacheTest {
 
         assertEquals(true, LossCache.shouldRecalc(id, 101L, force = false))
         assertNull(LossCache.usableSnapshot(id, 101L))
+    }
+
+    @Test
+    fun changedConfigInvalidatesCachedSnapshotAndMissingSnapshotsStayEmpty() {
+        LossCache.bootstrap()
+        val id = NetworkId("minecraft:overworld", 86L)
+        LossCache.set(id, 100L, TransmissionBreakdown(shaftBlocks = 1, rpm = 16f))
+        val cached = requireNotNull(LossCache.snapshot(id))
+
+        assertEquals(cached.lossSu, LossCache.getLoss(id))
+        assertNull(LossCache.usableSnapshot(NetworkId("minecraft:the_end", 86L), 100L))
+
+        val changedConfig = cached.configFingerprint.copy(enabled = !cached.configFingerprint.enabled)
+        assertEquals(true, LossCache.requiresRecalculation(cached, 101L, force = false, currentConfig = changedConfig))
+        assertNull(LossCache.usableSnapshot(id, 101L, force = true))
     }
 }
