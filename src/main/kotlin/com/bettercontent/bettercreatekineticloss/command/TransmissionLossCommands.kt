@@ -1,9 +1,9 @@
-package com.bettercontent.createtransmissionloss.command
+package com.bettercontent.bettercreatekineticloss.command
 
 import com.mojang.brigadier.CommandDispatcher
-import com.bettercontent.createtransmissionloss.network.CachedLoss
-import com.bettercontent.createtransmissionloss.network.LossCache
-import com.bettercontent.createtransmissionloss.network.NetworkRuntimeBridge
+import com.bettercontent.bettercreatekineticloss.network.CachedLoss
+import com.bettercontent.bettercreatekineticloss.network.LossCache
+import com.bettercontent.bettercreatekineticloss.network.NetworkRuntimeBridge
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.Commands

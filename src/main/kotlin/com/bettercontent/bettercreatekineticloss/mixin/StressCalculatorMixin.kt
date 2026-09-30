@@ -1,6 +1,6 @@
-package com.bettercontent.createtransmissionloss.mixin
+package com.bettercontent.bettercreatekineticloss.mixin
 
-import com.bettercontent.createtransmissionloss.network.NetworkRuntimeBridge
+import com.bettercontent.bettercreatekineticloss.network.NetworkRuntimeBridge
 import com.simibubi.create.content.kinetics.KineticNetwork
 import org.spongepowered.asm.mixin.Mixin
 import org.spongepowered.asm.mixin.Pseudo
@@ -32,7 +32,7 @@ abstract class StressCalculatorMixin {
             discoveryBaseStress <= currentCapacity && currentStress > currentCapacity
         if (causedByLoss && !discoveryOverloaded) {
             net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
-                com.bettercontent.createtransmissionloss.api.TransmissionOverloadEvent(
+                com.bettercontent.bettercreatekineticloss.api.TransmissionOverloadEvent(
                     this as KineticNetwork, discoveryBaseStress, discoveryLoss, currentCapacity))
         }
         discoveryOverloaded = causedByLoss

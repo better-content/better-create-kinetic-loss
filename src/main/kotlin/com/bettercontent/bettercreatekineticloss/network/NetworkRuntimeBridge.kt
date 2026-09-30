@@ -1,6 +1,6 @@
-package com.bettercontent.createtransmissionloss.network
+package com.bettercontent.bettercreatekineticloss.network
 
-import com.bettercontent.createtransmissionloss.config.TransmissionLossConfig
+import com.bettercontent.bettercreatekineticloss.config.TransmissionLossConfig
 import com.simibubi.create.content.kinetics.KineticNetwork
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import net.minecraft.world.level.block.state.BlockState

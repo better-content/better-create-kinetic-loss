@@ -1,10 +1,10 @@
-package com.bettercontent.createtransmissionloss
+package com.bettercontent.bettercreatekineticloss
 
 import com.mojang.brigadier.CommandDispatcher
-import com.bettercontent.createtransmissionloss.command.TransmissionLossCommands
-import com.bettercontent.createtransmissionloss.config.TransmissionLossConfig
-import com.bettercontent.createtransmissionloss.network.LossCache
-import com.bettercontent.createtransmissionloss.network.NetworkRuntimeBridge
+import com.bettercontent.bettercreatekineticloss.command.TransmissionLossCommands
+import com.bettercontent.bettercreatekineticloss.config.TransmissionLossConfig
+import com.bettercontent.bettercreatekineticloss.network.LossCache
+import com.bettercontent.bettercreatekineticloss.network.NetworkRuntimeBridge
 import net.minecraft.commands.CommandSourceStack
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.RegisterCommandsEvent
@@ -30,6 +30,6 @@ class TransmissionLossMod {
     }
 
     companion object {
-        const val MOD_ID = "create_transmission_loss"
+        const val MOD_ID = "better_create_kinetic_loss"
     }
 }

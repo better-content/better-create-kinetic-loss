@@ -1,6 +1,6 @@
-package com.bettercontent.createtransmissionloss.mixin
+package com.bettercontent.bettercreatekineticloss.mixin
 
-import com.bettercontent.createtransmissionloss.network.NetworkRuntimeBridge
+import com.bettercontent.bettercreatekineticloss.network.NetworkRuntimeBridge
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import org.spongepowered.asm.mixin.Mixin
 import org.spongepowered.asm.mixin.Pseudo

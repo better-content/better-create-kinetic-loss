@@ -1,4 +1,4 @@
-# Create Transmission Loss (Forge 1.20.1, KotlinForForge)
+# Better Create Kinetic Loss (Forge 1.20.1, KotlinForForge)
 
 Adds a virtual stress consumer to each Create kinetic network so transmission infrastructure (shafts/cogs/gearboxes/belts) contributes configurable SU loss.
 
@@ -17,7 +17,7 @@ Yes — Forge provides a built-in headless framework via **GameTest**. This proj
 
 - Unit tests for deterministic math/cache behavior: `src/test/kotlin/...`
 - Forge GameTests for mod runtime assertions: `src/main/kotlin/.../gametest/...`
-- A `gameTestServer` run config with `forge.enabledGameTestNamespaces=create_transmission_loss`
+- A `gameTestServer` run config with `forge.enabledGameTestNamespaces=better_create_kinetic_loss`
 
 Useful commands:
 
@@ -57,9 +57,9 @@ For modpack and mod discussion, playtest feedback, and bug reports, join the [Be
 
 ## Canonical identity
 
-- Repository and Gradle project: `create-transmission-loss`
-- Mod ID and resource namespace: `create_transmission_loss`
+- Repository and Gradle project: `better-create-kinetic-loss`
+- Mod ID and resource namespace: `better_create_kinetic_loss`
 - Maven group: `com.bettercontent`
-- Runtime artifact: `build/libs/create-transmission-loss-<version>.jar`
+- Runtime artifact: `build/libs/better-create-kinetic-loss-<version>.jar`
 
 The canonical identity is a clean break. Legacy mod IDs, resource namespaces, configuration paths, commands, network channels, and saved-data keys are not migrated or aliased.

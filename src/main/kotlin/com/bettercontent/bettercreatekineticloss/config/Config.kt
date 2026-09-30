@@ -1,6 +1,6 @@
-package com.bettercontent.createtransmissionloss.config
+package com.bettercontent.bettercreatekineticloss.config
 
-import com.bettercontent.createtransmissionloss.TransmissionLossMod
+import com.bettercontent.bettercreatekineticloss.TransmissionLossMod
 import net.minecraftforge.common.ForgeConfigSpec
 import net.minecraftforge.fml.ModLoadingContext
 import net.minecraftforge.fml.config.ModConfig

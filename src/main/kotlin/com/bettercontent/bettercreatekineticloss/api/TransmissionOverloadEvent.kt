@@ -1,4 +1,4 @@
-package com.bettercontent.createtransmissionloss.api
+package com.bettercontent.bettercreatekineticloss.api
 import com.simibubi.create.content.kinetics.KineticNetwork
 import net.minecraftforge.eventbus.api.Event
 /** Posted after the network synchronizes a committed overload caused specifically by added transmission loss. */

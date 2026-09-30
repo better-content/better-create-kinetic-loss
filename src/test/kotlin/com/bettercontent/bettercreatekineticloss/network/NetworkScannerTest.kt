@@ -1,6 +1,6 @@
-package com.bettercontent.createtransmissionloss.network
+package com.bettercontent.bettercreatekineticloss.network
 
-import com.bettercontent.createtransmissionloss.config.TransmissionLossConfig
+import com.bettercontent.bettercreatekineticloss.config.TransmissionLossConfig
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals

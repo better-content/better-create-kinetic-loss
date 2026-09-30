@@ -146,8 +146,8 @@ val verifyRuntimeMixinMetadata by tasks.registering {
     doLast {
         val runtimeJar = layout.buildDirectory.file("libs/${base.archivesName.get()}-$version.jar").get().asFile
         ZipFile(runtimeJar).use { zip ->
-            val config = zip.getEntry("create_transmission_loss.mixins.json")
-                ?: error("Runtime JAR is missing create_transmission_loss.mixins.json")
+            val config = zip.getEntry("better_create_kinetic_loss.mixins.json")
+                ?: error("Runtime JAR is missing better_create_kinetic_loss.mixins.json")
             val configText = zip.getInputStream(config).bufferedReader().use { it.readText() }
             check(!configText.contains("\"refmap\"")) { "Runtime mixin config still declares a refmap" }
             check(zip.entries().asSequence().none { it.name.endsWith(".refmap.json") }) {
@@ -195,11 +195,11 @@ tasks.jacocoTestCoverageVerification {
         rule {
             element = "CLASS"
             includes = listOf(
-                "com.bettercontent.createtransmissionloss.network.NetworkScanner",
-                "com.bettercontent.createtransmissionloss.network.LossCache",
-                "com.bettercontent.createtransmissionloss.network.CachedLoss",
-                "com.bettercontent.createtransmissionloss.network.NetworkId",
-                "com.bettercontent.createtransmissionloss.network.TransmissionBreakdown"
+                "com.bettercontent.bettercreatekineticloss.network.NetworkScanner",
+                "com.bettercontent.bettercreatekineticloss.network.LossCache",
+                "com.bettercontent.bettercreatekineticloss.network.CachedLoss",
+                "com.bettercontent.bettercreatekineticloss.network.NetworkId",
+                "com.bettercontent.bettercreatekineticloss.network.TransmissionBreakdown"
             )
             limit {
                 counter = "LINE"
@@ -242,5 +242,5 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 mixin {
-    config("create_transmission_loss.mixins.json")
+    config("better_create_kinetic_loss.mixins.json")
 }

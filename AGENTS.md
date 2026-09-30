@@ -2,10 +2,10 @@
 
 ## Scope
 
-This repository contains the Better Content-owned Forge mod **Create Transmission Loss**.
+This repository contains the Better Content-owned Forge mod **Better Create Kinetic Loss**.
 
-- Canonical mod ID: `create_transmission_loss`
-- Canonical artifact: `create-transmission-loss-<version>.jar`
+- Canonical mod ID: `better_create_kinetic_loss`
+- Canonical artifact: `better-create-kinetic-loss-<version>.jar`
 - Maven group: `com.bettercontent`
 - Java runtime: 17
 - Minecraft/Forge baseline: 1.20.1 / 47.4.13

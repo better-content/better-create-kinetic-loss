@@ -1,6 +1,6 @@
-package com.bettercontent.createtransmissionloss.network
+package com.bettercontent.bettercreatekineticloss.network
 
-import com.bettercontent.createtransmissionloss.config.TransmissionLossConfig
+import com.bettercontent.bettercreatekineticloss.config.TransmissionLossConfig
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 

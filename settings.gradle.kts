@@ -8,4 +8,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "create-transmission-loss"
+rootProject.name = "better-create-kinetic-loss"

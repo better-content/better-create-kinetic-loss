@@ -1,6 +1,6 @@
-package com.bettercontent.createtransmissionloss.network
+package com.bettercontent.bettercreatekineticloss.network
 
-import com.bettercontent.createtransmissionloss.config.TransmissionLossConfig
+import com.bettercontent.bettercreatekineticloss.config.TransmissionLossConfig
 
 /**
  * Belts are counted as pulley-pair Manhattan span on purpose for stability across Create internals.

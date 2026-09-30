@@ -1,9 +1,9 @@
-package com.bettercontent.createtransmissionloss.gametest
+package com.bettercontent.bettercreatekineticloss.gametest
 
-import com.bettercontent.createtransmissionloss.TransmissionLossMod
-import com.bettercontent.createtransmissionloss.config.TransmissionLossConfig
-import com.bettercontent.createtransmissionloss.network.NetworkScanner
-import com.bettercontent.createtransmissionloss.network.TransmissionBreakdown
+import com.bettercontent.bettercreatekineticloss.TransmissionLossMod
+import com.bettercontent.bettercreatekineticloss.config.TransmissionLossConfig
+import com.bettercontent.bettercreatekineticloss.network.NetworkScanner
+import com.bettercontent.bettercreatekineticloss.network.TransmissionBreakdown
 import net.minecraft.gametest.framework.GameTest
 import net.minecraft.gametest.framework.GameTestHelper
 import net.minecraftforge.gametest.GameTestHolder

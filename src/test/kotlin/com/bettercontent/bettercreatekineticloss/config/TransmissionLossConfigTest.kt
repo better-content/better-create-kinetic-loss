@@ -1,4 +1,4 @@
-package com.bettercontent.createtransmissionloss.config
+package com.bettercontent.bettercreatekineticloss.config
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
