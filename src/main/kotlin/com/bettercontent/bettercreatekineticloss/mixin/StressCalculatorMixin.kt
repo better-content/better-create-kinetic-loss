@@ -1,6 +1,7 @@
 package com.bettercontent.bettercreatekineticloss.mixin
 
 import com.bettercontent.bettercreatekineticloss.network.NetworkRuntimeBridge
+import com.bettercontent.bettercreatekineticloss.network.LossObservation
 import com.simibubi.create.content.kinetics.KineticNetwork
 import org.spongepowered.asm.mixin.Mixin
 import org.spongepowered.asm.mixin.Pseudo
@@ -28,13 +29,15 @@ abstract class StressCalculatorMixin {
     }
     @Inject(method = ["sync"], at = [At("TAIL")], remap = false)
     private fun signalCommittedOverload(ci: CallbackInfo) {
-        val causedByLoss = discoveryBaseStress.isFinite() && discoveryLoss > 0f && currentCapacity > 0f &&
-            discoveryBaseStress <= currentCapacity && currentStress > currentCapacity
+        val causedByLoss = LossObservation.isLossOverloaded(
+            discoveryBaseStress, discoveryLoss, currentCapacity, currentStress)
         if (causedByLoss && !discoveryOverloaded) {
             net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
                 com.bettercontent.bettercreatekineticloss.api.TransmissionOverloadEvent(
                     this as KineticNetwork, discoveryBaseStress, discoveryLoss, currentCapacity))
         }
+        NetworkRuntimeBridge.observeOverload(this as KineticNetwork, discoveryOverloaded, causedByLoss,
+            discoveryBaseStress, discoveryLoss, currentCapacity, currentStress)
         discoveryOverloaded = causedByLoss
     }
 }

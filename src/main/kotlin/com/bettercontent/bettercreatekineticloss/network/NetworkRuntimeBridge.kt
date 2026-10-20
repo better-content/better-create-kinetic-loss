@@ -1,6 +1,8 @@
 package com.bettercontent.bettercreatekineticloss.network
 
 import com.bettercontent.bettercreatekineticloss.config.TransmissionLossConfig
+import com.bettercontent.bettercreatekineticloss.TransmissionLossMod
+import com.bettercontent.bettercreatekineticloss.diagnostics.PlaytestLog
 import com.simibubi.create.content.kinetics.KineticNetwork
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import net.minecraft.world.level.block.state.BlockState
@@ -63,9 +65,43 @@ object NetworkRuntimeBridge {
         val sample = sampleNetwork(network) ?: return null
         LossCache.recordScan()
         bindings[network] = NetworkBinding(sample.id, sample.level)
+        val log = TransmissionLossMod.PLAYTEST
+        val observing = log.enabled("network")
+        val previous = if (observing) LossCache.snapshot(sample.id) else null
         LossCache.set(sample.id, sample.gameTime, sample.breakdown)
+        val published = LossCache.snapshot(sample.id)
+        if (observing && published != null) {
+            log.debug("network", "network.scan", PlaytestLog.Context.server(sample.id.dimension, sample.gameTime),
+                "published", LossObservation.scanReason(previous, published, force)) {
+                PlaytestLog.fields("network_pos_long", sample.id.canonicalPosLong,
+                    "before_su", previous?.lossSu ?: "UNKNOWN", "after_su", published.lossSu,
+                    "rpm", sample.breakdown.rpm, "components", sample.breakdown.components.size,
+                    "scans", LossCache.scanCount(), "cache_hits", LossCache.cacheHitCount())
+            }
+        }
+        if (published != null && log.traceEnabled("network")) {
+            val pos = net.minecraft.core.BlockPos.of(sample.id.canonicalPosLong)
+            log.trace("network", "network.scan.focus", PlaytestLog.Context("server", sample.id.dimension,
+                sample.gameTime, "", "${pos.x},${pos.y},${pos.z}"), "published", "sampled") {
+                PlaytestLog.fields("loss_su", published.lossSu, "rpm", sample.breakdown.rpm,
+                    "shafts", sample.breakdown.shaftBlocks, "cogwheels", sample.breakdown.cogwheels,
+                    "gearboxes", sample.breakdown.gearboxes, "belts", sample.breakdown.beltSegments)
+            }
+        }
+        return published
+    }
 
-        return LossCache.snapshot(sample.id)
+    fun observeOverload(network: KineticNetwork, previous: Boolean, current: Boolean,
+                        base: Float, loss: Float, capacity: Float, committedStress: Float) {
+        val log = TransmissionLossMod.PLAYTEST
+        if (!log.enabled("network")) return
+        val transition = LossObservation.overloadTransition(previous, current) ?: return
+        val binding = bindings[network] ?: return
+        log.debug("network", "network.overload", PlaytestLog.Context.server(binding.id.dimension, binding.level.gameTime),
+            "observed", transition) {
+            PlaytestLog.fields("network_pos_long", binding.id.canonicalPosLong, "base_su", base,
+                "loss_su", loss, "capacity_su", capacity, "committed_su", committedStress)
+        }
     }
 
     fun refreshLossFromBlockEntity(blockEntity: KineticBlockEntity, force: Boolean = false): CachedLoss? =

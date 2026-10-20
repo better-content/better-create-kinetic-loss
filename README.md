@@ -36,14 +36,43 @@ Useful commands:
 
 - Includes common config for coefficients and speed scaling modes (`NONE`, `LINEAR`, `QUADRATIC`).
 - Adds cache primitives and dirty-marking hooks.
-- Samples real Create network members at runtime via reflection and registry IDs.
+- Samples real Create network members and sources through the typed native API and registry IDs.
 - Adds in-world commands: `/transloss debug here`, `/transloss recalc here`, `/transloss profile`, `/demo transloss`.
 - Belt counting strategy is defined as **pulley-to-pulley Manhattan span** for stability across Create internals.
 
+## Bounded playtest logging
+
+`bc.playtest.better_create_kinetic_loss.network` emits completed scan/cache-publication
+reasons and committed loss-overload/clear transitions at DEBUG. Stable cache hits do not
+emit records. Scan details use existing sampled values; logging never rescans network
+members. `network_pos_long` identifies the native canonical network block position in
+its dimension, not a player identity. This ID can change with topology.
+
+INFO startup reports effective enabled state, version, limits and Create availability;
+source identity and hook execution are `UNKNOWN` when not observed. An INFO startup is
+not proof that the optional `require=0` hook applied. The native hook GameTest calls real
+Create `calculateStress` on an isolated placed shaft, checks publication/cache reuse and
+invalidation, and does not claim normal topology propagation or assembled-rig coverage.
+
+The repository-local Java17 helper shares 120 DEBUG/TRACE details per minute with burst20
+across categories, bounds aggregation to256 keys and records to2048 characters, and emits
+one coalesced summary per30 seconds on native server ticks (plus final teardown). Server
+stop clears native level bindings, cache and logging aggregation, without rearming TRACE
+or replenishing the shared allowance. Standalone defaults remain native INFO; the pack's
+scoped XML uses DEBUG and its `bc.playtest.level` override.
+
+Focused TRACE requires logger TRACE plus JVM properties
+`bc.playtest.trace.better_create_kinetic_loss.dimension=minecraft:overworld` and
+`bc.playtest.trace.better_create_kinetic_loss.pos=x,y,z` (canonical network position).
+The common helper alternatively accepts exactly one UUID subject, but this network
+instrumentation has no subject identity, so use position. Invalid/absent focus emits only
+one status; first matching detail arms at most60 seconds/1000 records once per process,
+subject to the ordinary bucket. No seeds, inventories, NBT or player names are logged.
+
 ## Release status
 
-- Release validations pass via `./gradlew verifyFull`.
-- Unit tests and GameTests are wired and passing.
+- Run `./gradlew verifyFull` for source/runtime validation; historical passes are not acceptance of changed source.
+- Unit tests and native GameTests are wired.
 - JaCoCo coverage gates are enforced for core packages in `build.gradle.kts`.
 
 ## Gradle wrapper
