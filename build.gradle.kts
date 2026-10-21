@@ -117,14 +117,8 @@ tasks.processResources {
     }
 }
 
-val syncGameTestStructures by tasks.registering(Copy::class) {
-    from("src/main/resources/gameteststructures")
-    into(layout.projectDirectory.dir("run/gameteststructures"))
-}
-
-tasks.matching { it.name.startsWith("prepareRun") }.configureEach {
-    dependsOn(syncGameTestStructures)
-}
+// Fresh native RunConfig preparation and strict diagnostics/count checks.
+apply(from = "gradle/native-gametest-fixture.gradle")
 
 tasks.named<Jar>("jar") {
     finalizedBy("reobfJar")

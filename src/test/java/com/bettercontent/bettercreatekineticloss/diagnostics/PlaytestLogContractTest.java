@@ -82,6 +82,18 @@ public final class PlaytestLogContractTest {
         props.setProperty("bc.playtest.trace.test_mod.pos", "9999999999,0,0");
         check(!new PlaytestLog("test_mod", sink, now::get, props).traceEnabled("detail"), "overflowing block coordinate accepted");
     }
+    @Test public void sourceIdentityIsBoundedAndRejectsOtherModsOrMalformedMetadata() {
+        PlaytestLog log = new PlaytestLog("test_mod", new Capture(), () -> 0L, new Properties());
+        String head = "a".repeat(40);
+        String valid = "schema=bc.custom_mod_source.v1\nrepository=test-mod\nmod_id=test_mod\ncommit=" + head + "\n";
+        java.util.function.Function<String, String> parse = text -> log.sourceIdentity(new java.io.ByteArrayInputStream(text.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        check(parse.apply(valid).equals(head), "valid own source HEAD unavailable");
+        check(parse.apply(valid.replace("mod_id=test_mod", "mod_id=other_mod")).equals("UNKNOWN"), "another mod source HEAD accepted");
+        check(parse.apply(valid.replace(head, "not-a-commit")).equals("UNKNOWN"), "malformed source HEAD accepted");
+        check(parse.apply(valid.replace("v1", "v2")).equals("UNKNOWN"), "unknown metadata schema accepted");
+        check(parse.apply(valid + "x".repeat(16385)).equals("UNKNOWN"), "unbounded metadata accepted");
+        check(parse.apply("schema=\\uZZZZ").equals("UNKNOWN"), "malformed properties raised into gameplay");
+    }
     @Test public void concurrentProducersShareOneBudget() throws Exception {
         Capture sink = new Capture(); PlaytestLog log = new PlaytestLog("test_mod", sink, () -> 0L, new Properties());
         List<Thread> threads = new ArrayList<>();
@@ -97,7 +109,7 @@ public final class PlaytestLogContractTest {
         PlaytestLogContractTest tests = new PlaytestLogContractTest();
         tests.disabledIsLazyAndStatusIsExplicit(); tests.globalBudgetSummariesAndTeardownDoNotRearmAllowance();
         tests.boundedCardinalityEscapingAndLength(); tests.traceRequiresValidMatchingFocusAndExpiresWithoutRearming();
-        tests.concurrentProducersShareOneBudget();
-        System.out.println("PlaytestLog contract: 5 cases passed");
+        tests.concurrentProducersShareOneBudget(); tests.sourceIdentityIsBoundedAndRejectsOtherModsOrMalformedMetadata();
+        System.out.println("PlaytestLog contract: 6 cases passed");
     }
 }

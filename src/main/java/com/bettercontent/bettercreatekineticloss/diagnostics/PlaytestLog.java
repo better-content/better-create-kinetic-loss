@@ -3,6 +3,11 @@ package com.bettercontent.bettercreatekineticloss.diagnostics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -67,6 +72,27 @@ public final class PlaytestLog {
         boolean position = validPosition(focusPos);
         validFocus = focusDimension.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")
             && ((subject && focusPos.isEmpty()) || (position && focusSubject.isEmpty()));
+    }
+    /** Call only at initialization using the owning Forge ModFile's exact metadata path. */
+    public String sourceIdentity(Path metadata) {
+        if (metadata == null) return "UNKNOWN";
+        try (InputStream input = Files.newInputStream(metadata)) { return sourceIdentity(input); }
+        catch (IOException | RuntimeException unavailable) { return "UNKNOWN"; }
+    }
+    /** Bounded metadata parser; never search another mod's classloader resources for this name. */
+    public String sourceIdentity(InputStream input) {
+        if (input == null) return "UNKNOWN";
+        try {
+            byte[] bytes = input.readNBytes(16_385);
+            if (bytes.length > 16_384) return "UNKNOWN";
+            java.util.Properties values = new java.util.Properties();
+            values.load(new ByteArrayInputStream(bytes));
+            String commit = values.getProperty("commit", "");
+            return "bc.custom_mod_source.v1".equals(values.getProperty("schema"))
+                && mod.equals(values.getProperty("mod_id"))
+                && !values.getProperty("repository", "").isBlank()
+                && commit.matches("(?:[a-f0-9]{40}|[a-f0-9]{64})") ? commit : "UNKNOWN";
+        } catch (IOException | RuntimeException unavailable) { return "UNKNOWN"; }
     }
     public boolean enabled(String category) { return sink.enabled(category, "DEBUG"); }
     public synchronized boolean traceEnabled(String category) {

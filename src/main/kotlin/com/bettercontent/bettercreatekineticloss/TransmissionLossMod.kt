@@ -24,8 +24,11 @@ class TransmissionLossMod {
         NetworkRuntimeBridge.bootstrap()
         MinecraftForge.EVENT_BUS.register(this)
         FMLJavaModLoadingContext.get().modEventBus.addListener<FMLCommonSetupEvent> {
+            val ownFile = net.minecraftforge.fml.ModList.get().getModFileById(MOD_ID)
+            val source = if (ownFile == null) "UNKNOWN" else PLAYTEST.sourceIdentity(
+                ownFile.file.findResource("META-INF", "better-content-source.properties"))
             PLAYTEST.status("common", net.minecraftforge.fml.ModList.get().getModContainerById(MOD_ID)
-                .map { container -> container.modInfo.version.toString() }.orElse("UNKNOWN"), "UNKNOWN") {
+                .map { container -> container.modInfo.version.toString() }.orElse("UNKNOWN"), source) {
                 PlaytestLog.fields("enabled", TransmissionLossConfig.valueOrDefault(TransmissionLossConfig.enabled, true),
                     "integration", "create_present", "hook_execution", "UNKNOWN")
             }

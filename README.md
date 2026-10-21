@@ -49,7 +49,8 @@ members. `network_pos_long` identifies the native canonical network block positi
 its dimension, not a player identity. This ID can change with topology.
 
 INFO startup reports effective enabled state, version, limits and Create availability;
-source identity and hook execution are `UNKNOWN` when not observed. An INFO startup is
+source identity uses the exact owner's bounded Forge ModFile metadata read and is `UNKNOWN`
+when unavailable; hook execution remains `UNKNOWN` until observed. An INFO startup is
 not proof that the optional `require=0` hook applied. The native hook GameTest calls real
 Create `calculateStress` on an isolated placed shaft, checks publication/cache reuse and
 invalidation, and does not claim normal topology propagation or assembled-rig coverage.
@@ -89,6 +90,17 @@ The Gradle wrapper, including `gradle/wrapper/gradle-wrapper.jar`, is tracked so
 ## Community and support
 
 For modpack and mod discussion, playtest feedback, and bug reports, join the [Better Content Discord](https://discord.gg/EkRnZbzqS9).
+
+## Native source fixture safety
+
+`verifyFull` runs both authored native GameTests in a fresh `build/gametest/<UUID>/`
+fixture, separate from client `run/`. Preparation reads the authoritative ForgeGradle
+RunConfig, creates only an absent comment-only `server.properties` (native defaults),
+and copies authored structures there. Existing properties, worlds and logs are not reset.
+The gate requires actual startup/shutdown, exactly two completed/passed required tests
+and zero native ERROR/FATAL records. `verifyFast` exercises settings preservation and
+negative diagnostic/population controls without Minecraft. Retain complete prior builds,
+libraries, fixtures and evidence before any independently authorized clean/reset.
 
 ## Canonical identity
 
